@@ -2,7 +2,6 @@ let leafletMap;
 let canvas;
 let agent;
 let memories = [];
-let currentPlace;
 let currentIndex = 0;
 let lastInteraction = 0;
 let newMoverFlag = true;
@@ -84,59 +83,48 @@ function draw() {
     noFill(), noStroke();
     clear();
 
-    currentPlace = NaN;
+    //draw places
     for (let i = 0; i < locations.length; i++) {
         place = locations[i]
         let myPoint = latLngToScreen(place[1], place[2]);
-        let myDist = dist(myPoint.x, myPoint.y, mouseX, mouseY);
 
-        stroke('blue');
         drawPlace(myPoint.x, myPoint.y, place);
+    }
 
-        if (lastInteraction - frameCount == 0) {
-        }
+    //memory box
+    stroke('white');
+    rect(width * 0.01, height * 0.5, width * 0.3, height * 0.45);
 
-        // left pane backdrop
-        noStroke();
-        //memory box
-        stroke('white');
-        rect(width * 0.01, height * 0.5, width * 0.3, height * 0.45);
-        // line(0, height/2, width, height/2);
-        // line(100, 0, 100, height);
+    //add a new memory point as menu switches
+    if (newMoverFlag) {
+        newMoverFlag = false;
+        memories.push(new Mover(random(0.01 * width, width * 0.3), random(height * 0.6, height * 0.9)));
+    }
 
-        //add a new memory point as menu switches
-        if (newMoverFlag) {
-            newMoverFlag = false;
+    //draw and go through mover updates
+    for (mover of memories) {
+        mover.update();
+        mover.show();
 
-            memories.push(new Mover(random(0.01 * width, width * 0.3), random(height * 0.6, height * 0.9)));
-        }
-
-        //draw and go through mover updates
-        for (mover of memories) {
-            mover.update();
-            mover.show();
-
-            for (mover2 of memories) {
-                if (mover2 != mover) {
-                    mover.applyForce(mover.seek(createVector(mover2.position.x, mover2.position.y))); // move marker to glob
-                    let diff = p5.Vector.sub(mover.position, mover2.position).mag();
-                    if ((diff < 1) && (mover.age > 100)) {
-                        mover.size++;
-                        memories.pop(mover2);
-                        if (depthLimit < 11) {
-                            depthLimit++;
-                            lastBranch = frameCount;
-                        }
+        for (mover2 of memories) {
+            if (mover2 != mover) {
+                mover.applyForce(mover.seek(createVector(mover2.position.x, mover2.position.y))); // move marker to glob
+                let diff = p5.Vector.sub(mover.position, mover2.position).mag();
+                if ((diff < 1) && (mover.age > 100)) {
+                    mover.size++;
+                    memories.pop(mover2);
+                    if (depthLimit < 11) {
+                        depthLimit++;
+                        lastBranch = frameCount;
                     }
                 }
             }
         }
     }
 
-    drawFractal();
-
+    // menu drawing
     drawMenu();
-
+    
     // dissapearing circle around the spot on the map
     if (frameCount - lastInteraction < 100) {
         push();
@@ -149,13 +137,15 @@ function draw() {
         circle(0, 0, r);
         pop();
     }
-
+    
+    // branch drawing
     if (frameCount - lastBranch > 150) {
         lastBranch = frameCount;
         if (depthLimit > 0) {
             depthLimit--;
         }
     }
+    drawFractal();
 }
 
 

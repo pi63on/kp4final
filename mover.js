@@ -14,13 +14,12 @@ class Mover {
         let noisex = map(noise(frameCount / 100), 0, 1, -1, 1);
         let noisey = map(noise((frameCount+47) / 100), 0, 1, -1, 1);
         let noiseAdd = createVector(noisex, noisey);
-        noiseAdd.limit(0.0001);
+        noiseAdd.limit(0.011);
         
         this.acceleration.add(noiseAdd);
         this.velocity.add(this.acceleration);
         this.position.add(this.velocity );
 
-        // noise movement?
 
         if (this.position.y >= height * 0.95 || this.position.y <= height * 0.5 ){
             this.velocity.y = this.velocity.y * -1 ;
@@ -49,14 +48,14 @@ class Mover {
         let desired = p5.Vector.sub(target, this.position);
         
         if (desired.mag() <= aRadius){
-            desired.setMag(.1 * desired.mag()/aRadius);
+            desired.setMag(1 * desired.mag()/aRadius);
         } else {
-            desired.setMag(.1);
+            desired.setMag(1);
         }
 
         let steer = p5.Vector.sub(desired, this.velocity);
         
-        steer.limit(0.05);
+        steer.limit(0.15);
         return steer;
     }
 
